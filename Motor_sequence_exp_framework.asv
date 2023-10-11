@@ -7,8 +7,10 @@ sca; clc; close all; clear all; clearvars;
 %% set keyboards
 % exp_dir  = pwd;
 addpath Cedrus_Keyboard/
-run setCedrusRB.m % plug in the left RB pad first then the right RB pad
-run SuppressWarning.m 
+run setCedrusRB840.m % plug in the left RB pad first then the right RB pad
+% Suppress Warning
+id = 'serialport:serialport:ReadWarning';
+warning('off',id)
 
 % set the random number seed as the date of today in formate such as 20220505
 seed=input('enter the date in format YYYYMMDD:');
@@ -18,27 +20,19 @@ rng(seed);
 % based on OpenGL or Screen() is not working properly.
 AssertOpenGL;
 
-%% Set trial conditions ****************************************************
-conditions = [1 2];
-
-% Block & Trial number of the experiment **********************************
-% number of taps per trial/condition
-numTaps=230; 
-% number of trials per block
-numTrials=2;
-% number of blocks/repeats
-numBlock=1;
-% total trial number
-numtotal=numTrials*numBlock; 
-% num of conditions in the experiment
-numconditions=length(conditions);
-% **********************************Block & Trial number of the experiment
-
 %% ########################################################################
 try      % if anything went wrong, exit the display and show the error on the Command window
     
     % Here we call some default settings for setting up Psychtoolbox 
     PsychDefaultSetup(2);
+
+    % Start with black screen
+    % Removes the blue screen flash and minimize extraneous warnings.
+    Screen('Preference', 'VisualDebugLevel', 0); % disable all visual alerts
+    Screen('Preference', 'SkipSyncTests', 1); %  shorten the maximum duration of the sync tests to 3 seconds worst case
+    Screen('Preference', 'SuppressAllWarnings', 1); %disable all output to the command window 
+    % The use of “mirror mode”, or “clone mode”, where multiple displays show the
+    % same content, will almost always cause  timing and performance problems.
 
     % Get the screen numbers. This gives us a number for each of the screens
     % attached to our computer. For help see: Screen Screens?
@@ -97,6 +91,12 @@ try      % if anything went wrong, exit the display and show the error on the Co
     % set Priority once at the start of a script after setting up onscreen window.
     Priority(topPriorityLevel);
 
+    % Hide the cursor of the mouse in the display*****************
+    % Get handles for all virtual pointing devices, aka cursors:
+    typeOnly='masterPointer'; 
+    mice = GetMouseIndices(typeOnly);  
+    HideCursor(windowPtr,mice);
+
     % Measure the vertical refresh rate of the monitor
     ifi = Screen('GetFlipInterval', windowPtr);
     % Check if ifi=0.0167 second (60Hz)
@@ -117,11 +117,35 @@ try      % if anything went wrong, exit the display and show the error on the Co
     % We have to filp every (1/50)/ifi frames or 1/50 ms/frame
     waitframes=2;
 
-    %% Hide the cursor of the mouse in the display*****************
-    % Get handles for all virtual pointing devices, aka cursors:
-    typeOnly='masterPointer'; 
-    mice = GetMouseIndices(typeOnly);  
-    HideCursor(windowPtr,mice);
+
+    %% Set trial conditions ****************************************************
+    conditions = [1 2];
+    
+    % Block & Trial number of the experiment **********************************
+    % number of taps per trial/condition
+    numTaps=24; 
+    % number of trials per block
+    numTrials=2;
+    % number of blocks/repeats
+    numBlock=1;
+    % total trial number
+    numtotal=numTrials*numBlock; 
+    % num of conditions in the experiment
+    numconditions=length(conditions);
+
+    % Mean stimulus interval for 1.3Hz pacing (750ms per tap)
+    MeanTapInterval13Hz=0.75; % second
+    NumFramesInterval13Hz=round(MeanTapInterval13Hz/(ifi*waitframes)); % how many frames in each tapping interval of 750 ms
+    numFrames = NumFramesInterval13Hz*numTaps 
+
+    % condition 1-2 (paced the frist 30 taps, set the rest of the frames with value zeros)
+    Showframes=[1:NumFramesInterval13Hz:NumFramesInterval13Hz*numTaps]; % showing the stimulus every 750 milliseconds
+    numFrames200ms=round(0.02/(ifi*waitframes)); % how many frames in 200 ms
+
+    %initialize variables
+    pressedR1=[]; RBkeyR1=[];
+
+    % **********************************Block & Trial number of the experiment
 
     %% Tell subject to start
     instructionStart=['Press any key to start!']; 
@@ -136,40 +160,64 @@ try      % if anything went wrong, exit the display and show the error on the Co
     % get a timestamp by flip a black screen at the start of resting 
     vbl = Screen('Flip', windowPtr);
 
-    
-
-
+    %%
     for block=1:numBlock
+        for t=1:numTrials 
+            % purge RB key press buffer 
+            run Purge_buffers.m
 
-    tic
-    % initalize the while loop for displaying black screen
-    n=1;
+            % initalize the while loop for each trial
+            n=1;
+            while n < numFrames % either one reach 600 taps  @@@@@@@@
+                tic
+                % If esc is pressed, break out of the while loop and close the screen
+                [keyIsDown, keysecs, keyCode] = KbCheck;
+                if keyCode(KbName('escape'));
+                    Screen('CloseAll');
+                    break;
+                end
+                % If F1 is pressed, exit and continue to the next condition
+                if keyCode(KbName('F1'));
+                    n=numFrames;
+                end
 
-    %% Setting time variables for each stimulus**********************
-    % total number of video frames to flip in each stimlus
-    StimulusDuration=0.2; % 100 milliseconds 
-    numFramesStim = round(StimulusDuration/ifi/waitframes);
-    numFramesStim = 
+                % Response keys layout Design*************************************************
+                % Show stimulus
+                if any(Showframes(:) == n)
+                    current_stimulus_frame = n;
+                    Screen('FrameOval', windowPtr,white, [xCenter-buttom_radius yCenter-buttom_radius xCenter+buttom_radius yCenter+buttom_radius],1,1); 
+                    Screen('FillRect', windowPtr, white, LeftUpperSquare);
+                end
 
-    while n < numFramesStim
-        % If esc is press, break out of the while loop and exit experiment
-        [keyIsDown, keysecs, keyCode] = KbCheck;
-        if keyCode(KbName('escape'))
-            Screen('CloseAll');
-            break;
+                % Detect response and show feedback
+                % Read button press from the right cubicle
+                try
+                    % Right player
+                    [pressedR1, RBkeyR1]=readCedrusRB(deviceR, keymapR);
+                catch
+                    % do nothing; 
+                end
+
+                if pressedR1 == 1 % at least one key press detected in the frist two events of the previous buffer
+                    if RBkeyR1==6
+                        if n-current_stimulus_frame < numFrames200ms % 200ms
+                            Screen('DrawDots', windowPtr, [xCenter;yCenter], buttom_radius-2, green, [0 0], 2); 
+                        end
+                    end
+                end
+
+                %% Flip to the screen
+                vbl  = Screen('Flip', windowPtr, vbl + (waitframes -0.5) * ifi);
+                % update n
+                n = n+1;
+            end
         end
     end
 
-    %% Response keys layout Design*************************************************
-    Screen('FrameOval', windowPtr,white, [xCenter-buttom_radius yCenter-buttom_radius xCenter+buttom_radius yCenter+buttom_radius],1,1); 
-    Screen('FillRect', windowPtr, white, LeftUpperSquare);  
-
-    end
 
 
 
-
-    % Show The End
+    %% Show The End
     TheEnd = ['The End. \nThank you!'];
     DrawFormattedText2(TheEnd,'win',windowPtr,...
         'sx','center','sy', 'center','xalign','center','yalign','top','baseColor',white);
