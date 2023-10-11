@@ -108,6 +108,7 @@ try      % if anything went wrong, exit the display and show the error on the Co
     PhotosensorSize=60; 
     % Positions of the photocell at he bottom rihgt corner of the screen
     LeftUpperSquare = [0 0 PhotosensorSize PhotosensorSize];
+    RightUpperSquare= [screenXpixels-PhotosensorSize 0 screenXpixels PhotosensorSize];
 
     %% Numer of frames to wait in order to achieve good timing. 
     % Note: the use of wait frames is to show a generalisable coding. 
@@ -116,7 +117,6 @@ try      % if anything went wrong, exit the display and show the error on the Co
     % In order to flip with feedback at 50 Hz
     % We have to filp every (1/50)/ifi frames or 1/50 ms/frame
     waitframes=2;
-
 
     %% Set trial conditions ****************************************************
     conditions = [1 2];
@@ -182,11 +182,16 @@ try      % if anything went wrong, exit the display and show the error on the Co
                 end
 
                 % Response keys layout Design*************************************************
+                % show buttoms and two hands
+                Screen('FrameOval', windowPtr,white, [xCenter-buttom_radius yCenter-buttom_radius xCenter+buttom_radius yCenter+buttom_radius],1,1);
+
                 % Show stimulus
                 if any(Showframes(:) == n)
                     current_stimulus_frame = n;
-                    Screen('FrameOval', windowPtr,white, [xCenter-buttom_radius yCenter-buttom_radius xCenter+buttom_radius yCenter+buttom_radius],1,1); 
-                    Screen('FillRect', windowPtr, white, LeftUpperSquare);
+                    Screen('DrawDots', windowPtr, [xCenter;yCenter], buttom_radius-2, white, [0 0], 2); 
+                    Screen('FillRect', windowPtr, white, LeftUpperSquare); % photocell
+                    Screen('FillRect', windowPtr, white, RightUpperSquare); % photocell
+
                 end
 
                 % Detect response and show feedback
@@ -200,8 +205,12 @@ try      % if anything went wrong, exit the display and show the error on the Co
 
                 if pressedR1 == 1 % at least one key press detected in the frist two events of the previous buffer
                     if RBkeyR1==4
-                        if n-current_stimulus_frame < numFrames200ms % 200ms
+                        if abs(n-current_stimulus_frame) < numFrames200ms % 200ms
                             Screen('DrawDots', windowPtr, [xCenter;yCenter], buttom_radius-2, green, [0 0], 2); 
+                        elseif (abs(n-current_stimulus_frame) > numFrames200ms) & (abs(n-current_stimulus_frame) < 2*numFrames200ms) % 400ms
+                            Screen('DrawDots', windowPtr, [xCenter;yCenter], buttom_radius-2, blue, [0 0], 2); 
+                        elseif abs(n-current_stimulus_frame) > 3*numFrames200ms % 600ms
+                            Screen('DrawDots', windowPtr, [xCenter;yCenter], buttom_radius-2, red, [0 0], 2); 
                         end
                     end
                 end
