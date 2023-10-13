@@ -125,9 +125,9 @@ try      % if anything went wrong, exit the display and show the error on the Co
     % number of taps per trial/condition
     numTaps=24; 
     % number of trials per block
-    numTrials=2;
+    numTrials=4;
     % number of blocks/repeats
-    numBlock=1;
+    numBlock=12;
     % total trial number
     numtotal=numTrials*numBlock; 
     % num of conditions in the experiment
