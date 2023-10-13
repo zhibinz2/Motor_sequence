@@ -206,13 +206,13 @@ try      % if anything went wrong, exit the display and show the error on the Co
 
                 if pressedR1 == 1 % at least one key press detected in the frist two events of the previous buffer
                     if RBkeyR1==4
-                        if ((n - previous_stimulus_frame) < 0.5*numFrames200ms) || ((next_stimulus_frame - n)< 0.5*numFrames200ms)% 100ms
+                        if ((n - previous_stimulus_frame) < 0.5*numFrames200ms) | ((next_stimulus_frame - n)< 0.5*numFrames200ms)% 100ms
                             Screen('DrawDots', windowPtr, [xCenter;yCenter], buttom_radius-2, green, [0 0], 2); 
-                        elseif (((n - previous_stimulus_frame) > 0.5*numFrames200ms) && ((n - previous_stimulus_frame) < numFrames200ms) ) || ( ...
-                                ((next_stimulus_frame - n) > 0.5*numFrames200ms) && ((next_stimulus_frame - n) < numFrames200ms)) % 100-200ms
+                        elseif (((n - previous_stimulus_frame) > 0.5*numFrames200ms) & ((n - previous_stimulus_frame) < numFrames200ms) ) | ( ...
+                                ((next_stimulus_frame - n) > 0.5*numFrames200ms) & ((next_stimulus_frame - n) < numFrames200ms))
+                            % 100-200ms
                             Screen('DrawDots', windowPtr, [xCenter;yCenter], buttom_radius-2, blue, [0 0], 2); 
-                        elseif (((n - previous_stimulus_frame) > numFrames200ms) && ((n - previous_stimulus_frame) < 1.5*numFrames200ms) ) || ( ...
-                                ((next_stimulus_frame - n) > numFrames200ms) && ((next_stimulus_frame - n) < 1.5*numFrames200ms)) % 200-300ms
+                        elseif abs(n-previous_stimulus_frame) > 3*numFrames200ms % 200-300ms
                             Screen('DrawDots', windowPtr, [xCenter;yCenter], buttom_radius-2, red, [0 0], 2); 
                         end
                     end

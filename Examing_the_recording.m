@@ -22,3 +22,5 @@ plot(timeR,Triger_data,'r.')
 % Line 7: Key 7  (output = 255-2^7 = 255-128 =127)
 % Line 8: Light Sensor 1 (Back light sensor) (output = 255-2^8 = -1)
 % Line 9: Light Sensor 2 (White light sensor) (output = 255-2^9 = -257)
+
+
