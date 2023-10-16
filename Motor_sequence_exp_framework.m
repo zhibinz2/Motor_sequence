@@ -142,9 +142,6 @@ try      % if anything went wrong, exit the display and show the error on the Co
     Showframes=[1:NumFramesInterval13Hz:NumFramesInterval13Hz*numTaps]; % showing the stimulus every 750 milliseconds
     numFrames200ms=round(0.2/(ifi*waitframes)); % how many frames in 200 ms
 
-    %initialize variables
-    pressedR1=[]; RBkeyR1=[];
-
     % **********************************Block & Trial number of the experiment
 
     %% Tell subject to start
@@ -200,6 +197,8 @@ try      % if anything went wrong, exit the display and show the error on the Co
                 % Read button press from the right cubicle
                 try
                     % Right player
+                    % initialize / reset variables
+                    pressedR1=[]; RBkeyR1=[];
                     [pressedR1, RBkeyR1]=readCedrusRB(deviceR, keymapR);
                 catch
                     % do nothing; 
