@@ -140,7 +140,7 @@ try      % if anything went wrong, exit the display and show the error on the Co
 
     % condition 1-2 (paced the frist 30 taps, set the rest of the frames with value zeros)
     Showframes=[1:NumFramesInterval13Hz:NumFramesInterval13Hz*numTaps]; % showing the stimulus every 750 milliseconds
-    numFrames200ms=round(0.02/(ifi*waitframes)); % how many frames in 200 ms
+    numFrames200ms=round(0.2/(ifi*waitframes)); % how many frames in 200 ms
 
     %initialize variables
     pressedR1=[]; RBkeyR1=[];
@@ -188,7 +188,7 @@ try      % if anything went wrong, exit the display and show the error on the Co
                 % Show stimulus
                 if any(Showframes(:) == n)
                     previous_stimulus_frame = n;
-                    if previous_stimulus_frame < numTaps-1
+                    if previous_stimulus_frame < Showframes(end)
                     next_stimulus_frame = Showframes(find(Showframes==previous_stimulus_frame)+1);
                     Screen('DrawDots', windowPtr, [xCenter;yCenter], buttom_radius-2, white, [0 0], 2); 
                     Screen('FillRect', windowPtr, white, LeftUpperSquare); % photocell
