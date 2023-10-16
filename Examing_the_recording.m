@@ -6,6 +6,8 @@ addpath(genpath('./util'))
 Path_filenameR=[pwd '/' EEGfileNameR];
 [timeR,samplesR,TRIGGERindR,srR,channels_infoR,labelsR] = LoadTMSi(Path_filenameR);
 
+
+%% Processing button presses from Trigger channel
 Triger_data=samplesR(TRIGGERindR,:);
 figure;
 clf;
@@ -23,4 +25,70 @@ plot(timeR,Triger_data,'r.')
 % Line 8: Light Sensor 1 (Back light sensor) (output = 255-2^8 = -1)
 % Line 9: Light Sensor 2 (White light sensor) (output = 255-2^9 = -257)
 
+
+%% Processing photocell from Aux channel
+% look for the second ISO aux channel for the photocell 
+ISOauxindR=find(channels_infoR.labels=='ISO aux');
+
+
+% examine the Right
+figure('units','normalized','outerposition',[0 0 1 0.3]);
+subplot(2,1,1);
+plot(samplesR(ISOauxindR(1),:),'r'); title('ISOauxind(1)')%  ISO aux = analog
+subplot(2,1,2);
+plot(samplesR(ISOauxindR(2),:),'b'); title('ISOauxind(2)')
+% select a good one
+Photocell_R=samplesR(ISOauxindR(1),:)';
+Photocell_R=samplesR(ISOauxindR(1),:)'.*-1;
+Photocell_R=samplesR(ISOauxindR(2),:)';
+
+% for photocell
+% view the time course of photocell signals
+figure('units','normalized','outerposition',[0 0 1 0.3]);
+plot(Photocell_R);xlabel('time');ylabel('photocell signal');
+% plot EEG on top
+% hold on; plot(time,samples(2:33,:)'); % it zoom out the phtocell amplitude, too small to see
+
+% click and select the start and end point for peak extraction (optional)
+[x, y] = ginput(2); % read two mouse clicks on the plot % x were index, y were real values
+Startpoint=round(x(1));Endpoint=round(x(2)); % Startpoint and Endpoint are sample number or index in time
+hold on;xline(x(1),'r');xline(x(2),'r');hold off;
+
+% replace the beginning and end with baseline value (optional)
+Photocell(1:Startpoint)=mean(y);Photocell(Endpoint:end)=mean(y); % plot(Photocell');
+plot(time,Photocell,'b'); 
+
+% Examine peaks detection in analog1
+Halfhigh1=3/4*(max(Photocell_R)-min(Photocell_R)); % value for 'MinPeakProminence'
+% Check if need to adjust the Halfhigh cutoff
+close;figure('units','normalized','outerposition',[0 0 1 0.3]);
+findpeaks(Photocell_R,1:length(timeR),'MinPeakProminence',Halfhigh1,'Annotate','extents');
+yline(Halfhigh1,'m','MinPeakProminence');
+
+% locate the trial sessions % pks=value of the peak % locs=time of the peak
+[pksR,locsR] = findpeaks(Photocell_R,1:length(timeR),'MinPeakProminence',Halfhigh1,'Annotate','extents');
+% 12 blocks *230 taps = 2760
+
+% examine pks and locs (both are values of analog1data and datatimes, not indices)
+% i=1;
+% find(Photocell==pks(i)) % return the index of peak in time
+% find(datatimes==locs(i)) % return the same "index" in datatimes (ie, i=1, index=4226)
+% so, infer from above, beacause the above "find values" for the same "index" works
+% pks are values in analog1data
+% locs are values in datatimes ((ie, i=1, value=4225))
+
+% figure;plot(locs,'bo');
+% figure;bar(locs);
+% figure;plot(pks,'bo');
+% figure;bar(pks);
+% figure;plot(locs,pks,'bo');ylim([min(analog1data) max(analog1data)]);
+
+% locsDurations=diff(locs);% time durations between peaks
+% close;figure;
+% plot(locsDurations,'ro');% look at distribution of these durations   
+% xlabel('each peak');ylabel('locsDurations = Between-peaks time duration (ms)');
+% Lowcutoff=5*mean(locsDurations);% cutoff standard of the between-peak duarations to separate between trials
+% Highcutoff=180*mean(locsDurations);
+% hold on; yline(Lowcutoff,'m--','lowcut');hold off; % examine the cutoff line
+% hold on; yline(Highcutoff,'m--','highcut');hold off;
 
