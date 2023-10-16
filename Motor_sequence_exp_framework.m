@@ -188,11 +188,12 @@ try      % if anything went wrong, exit the display and show the error on the Co
                 % Show stimulus
                 if any(Showframes(:) == n)
                     previous_stimulus_frame = n;
+                    if previous_stimulus_frame < numTaps-1
                     next_stimulus_frame = Showframes(find(Showframes==previous_stimulus_frame)+1);
                     Screen('DrawDots', windowPtr, [xCenter;yCenter], buttom_radius-2, white, [0 0], 2); 
                     Screen('FillRect', windowPtr, white, LeftUpperSquare); % photocell
                     Screen('FillRect', windowPtr, white, RightUpperSquare); % photocell
-
+                    end
                 end
 
                 % Detect response and show feedback
