@@ -13,7 +13,6 @@ figure;
 clf;
 plot(timeR,Triger_data,'r.')
 
-
 % Line 0: Key 0  (output = 255-2^0 = 255-1 =254)
 % Line 1: Key 1  (output = 255-2^1 = 255-2 =253)
 % Line 2: Key 2  (output = 255-2^2 = 255-4 =251)
