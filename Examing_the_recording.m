@@ -1,4 +1,3 @@
-
 addpath(genpath('../TMSi_SAGA_matlab'))
 addpath(genpath('./util'))
 
@@ -6,6 +5,8 @@ addpath(genpath('./util'))
 Path_filenameR=[pwd '/' EEGfileNameR];
 [timeR,samplesR,TRIGGERindR,srR,channels_infoR,labelsR] = LoadTMSi(Path_filenameR);
 
+cd ./Recordings_test/
+load('20231016R.mat')
 
 %% Processing button presses from Trigger channel
 Triger_data=samplesR(TRIGGERindR,:);
