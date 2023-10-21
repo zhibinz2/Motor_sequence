@@ -10,10 +10,15 @@ cd ./Recordings_test/
 load('20231016R.mat')
 
 %% Processing button presses from Trigger channel
-Triger_data=samplesR(TRIGGERindR,:);
+TriggersR=samplesR(TRIGGERindR,:)';valuesR=unique(TriggersR)'
+
+% Check if values are as expected
+% ([valuesL] ==[0 119 127 183 191 247 255])
+% ([valuesR] ==[0 119 127 183 191 247 255])
+
 figure;
 clf;
-plot(timeR,Triger_data,'r.')
+plot(timeR,Triger_dataR,'r.')
 
 % Line 0: Key 0  (output = 255-2^0 = 255-1 =254)
 % Line 1: Key 1  (output = 255-2^1 = 255-2 =253)
@@ -25,6 +30,27 @@ plot(timeR,Triger_data,'r.')
 % Line 7: Key 7  (output = 255-2^7 = 255-128 =127)
 % Line 8: Light Sensor 1 (Back light sensor) (output = 255-2^8 = -1)
 % Line 9: Light Sensor 2 (White light sensor) (output = 255-2^9 = -257)
+
+% ScreenSize=get(0,'MonitorPositions');
+% FigureXpixels=ScreenSize(3);FigureYpixels=ScreenSize(4);
+% figure('units','pixels','position',[0 0 FigureXpixels/2 FigureYpixels/4]);
+
+PresIndR=unique(find(TriggersR == 253)); 
+
+figure('units','normalized','outerposition',[0 0 1 0.3]);
+plot(PresIndR,ones(1,length(PresIndR)),'bo'); % look at the above Index (one press produced several indices)
+
+% determine a threshold of numbers of frames in the button press interval
+threshold = 1*1.5; % interval larger than 1 consecutive samples
+
+BottonPresTimeIndR=PresIndR(find([0 diff(PresIndR')]>threshold)); % exact index of key press onset in datatimes (reduce several indices into one)
+% create a time series that assign botton presses as 1, all other as 0
+BottonPresTimeR01=zeros(size(timeR));
+BottonPresTimeR01(BottonPresTimeIndR)=1;
+figure('units','normalized','outerposition',[0 0 1 0.3]);
+plot(BottonPresTimeR01,'b.')
+numPresR=sum(BottonPresTimeR01) % num of button presses
+
 
 
 %% Processing photocell from Aux channel
