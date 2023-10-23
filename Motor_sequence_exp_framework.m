@@ -97,12 +97,21 @@ try      % if anything went wrong, exit the display and show the error on the Co
     mice = GetMouseIndices(typeOnly);  
     HideCursor(windowPtr,mice);
 
+
+    % IMAGES
+    objIm = './Pictures/display.png';
+    [objLoad,map,alpha] = imread(objIm);
+    % texture1 = Screen('MakeTexture', w, objLoad);
+    objLoad(:, :, 4) = alpha;
+    texture2 = Screen('MakeTexture', windowPtr, objLoad);
+
     % Measure the vertical refresh rate of the monitor
     ifi = Screen('GetFlipInterval', windowPtr);
     % Check if ifi=0.0167 second (60Hz)
     if round(1/ifi)~=60
       error('Error: Screen flash frequency is not set at 60Hz.');    
     end
+
 
     %% Set size of the squares for photocell ##############################
     PhotosensorSize=60; 
@@ -180,6 +189,8 @@ try      % if anything went wrong, exit the display and show the error on the Co
 
                 % Response keys layout Design*************************************************
                 % show buttoms and two hands
+                Screen('DrawTexture', windowPtr, texture2,[],windowRect); % draw the object 
+                % show center buttom
                 Screen('FrameOval', windowPtr,white, [xCenter-buttom_radius yCenter-buttom_radius xCenter+buttom_radius yCenter+buttom_radius],1,1);
 
                 % Show stimulus
